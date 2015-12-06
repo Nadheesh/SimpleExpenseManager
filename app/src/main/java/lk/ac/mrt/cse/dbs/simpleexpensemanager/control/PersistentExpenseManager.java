@@ -11,6 +11,7 @@ import lk.ac.mrt.cse.dbs.simpleexpensemanager.data.model.Account;
 
 /**
  * Created by Nadheesh on 12/3/2015.
+ * This is the persistent memory expense manager
  */
 public class PersistentExpenseManager  extends ExpenseManager{
 
@@ -24,8 +25,10 @@ public class PersistentExpenseManager  extends ExpenseManager{
     @Override
     public void setup() {
 
+        //create the DBhandler for the given context
         DBHandler db_handler = new DBHandler(context);
 
+        //assign DAO objects to the expensemanager
         TransactionDAO persistentTransactionDAO = new PersistentTransactionDAO(db_handler);
         setTransactionsDAO(persistentTransactionDAO);
 
@@ -34,11 +37,11 @@ public class PersistentExpenseManager  extends ExpenseManager{
 
 
 
-        // dummy data
+        // add dummy data
         Account dummyAcct1 = new Account("12345A", "Yoda Bank", "Anakin Skywalker", 10000.0);
         Account dummyAcct2 = new Account("78945Z", "Clone BC", "Obi-Wan Kenobi", 80000.0);
-        //getAccountsDAO().addAccount(dummyAcct1);
-        //getAccountsDAO().addAccount(dummyAcct2);
+        getAccountsDAO().addAccount(dummyAcct1);
+        getAccountsDAO().addAccount(dummyAcct2);
 
     }
 }

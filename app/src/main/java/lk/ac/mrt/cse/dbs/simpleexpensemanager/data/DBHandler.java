@@ -8,22 +8,24 @@ import lk.ac.mrt.cse.dbs.simpleexpensemanager.Constants;
 
 /**
  * Created by Nadheesh on 12/3/2015.
+ * This class is to handle the database, create tables etc
  */
+
 public class DBHandler extends SQLiteOpenHelper {
 
     public DBHandler(Context context){
         super(context, Constants.db_name , null, 3);
     }
+
     @Override
     public void onCreate(SQLiteDatabase db) {
 
-        //db = SQLiteDatabase.openOrCreateDatabase(Constants.db_name, null);
-        //db = SQLiteDatabase.openDatabase( "/ data / data / com.pack.store / databases / "+ Constants.db_name, null,SQLiteDatabase.CREATE_IF_NECESSARY);
-        //db = SQLiteDatabase.openDatabase("asdsa" , null, SQLiteDatabase.CONFLICT_ROLLBACK );
+
 
         //db.execSQL( " DROP TABLE account ;");
         //db.execSQL( " DROP TABLE "+ Constants.TRANSACTION_LOG + " ;");
 
+        //create two tables in the database if not exists
         db.execSQL("CREATE TABLE IF NOT EXISTS " + Constants.ACCOUNT_TABLE +
                 "( " +
                 Constants.ACCOUNT_NO + " CHAR(20), " +

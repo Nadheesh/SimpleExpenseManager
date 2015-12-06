@@ -17,7 +17,9 @@ import android.content.Context;
 import android.database.sqlite.SQLiteStatement;
 
 /**
- * Created by Nadheesh on 12/3/2015.
+ * Created by Nadheesh on 12/3/2015./**
+ * This is an Persistent-Storage implementation of the AccountDAO interface. A sqlite database is
+ * used to store the account details as a storage.
  */
 public class PersistentAccountDAO implements AccountDAO {
 
@@ -60,6 +62,7 @@ public class PersistentAccountDAO implements AccountDAO {
             account = new Account(cursor.getString(3),cursor.getString(0),cursor.getString(1),cursor.getDouble(2));
             accounts.add(account);
         }
+
         cursor.close();
         db.close();
         return accounts;
