@@ -22,74 +22,114 @@ import android.database.sqlite.SQLiteStatement;
 public class PersistentAccountDAO implements AccountDAO {
 
     private SQLiteDatabase db;
+    private DBHandler dbHandler ;
 
 
     public PersistentAccountDAO(DBHandler db_handler){
 
-        db =db_handler.getWritableDatabase();
+        this.dbHandler = db_handler;
     }
 
     @Override
     public List<String> getAccountNumbersList() {
+        db =dbHandler.getReadableDatabase();
         List <String> ac_no = new ArrayList<>();
 
-        Cursor cursor = db.query("account", new String[]{"account_no"}, null, null , null, null, null);
+        Cursor cursor = db.query(Constants.ACCOUNT_TABLE, new String[]{Constants.ACCOUNT_NO}, null, null , null, null, null);
 
         while(cursor.moveToNext()){
             ac_no.add(cursor.getString(0));
-            System.out.println(cursor.getString(0));
         }
-
+        cursor.close();
+        db.close();
         return ac_no;
+
     }
 
     @Override
     public List<Account> getAccountsList() {
+        ArrayList<Account> accounts = new ArrayList<>();
 
-        return new ArrayList<Account>();
+        db =dbHandler.getReadableDatabase();
+
+        Account account = null;
+
+        Cursor cursor = db.query(Constants.ACCOUNT_TABLE, new String[]{Constants.BANK_NAME, Constants.ACCOUNT_HOLDER, Constants.BALANCE , Constants.ACCOUNT_NO}, null ,null , null, null, null);
+
+        while(cursor.moveToNext()){
+            account = new Account(cursor.getString(3),cursor.getString(0),cursor.getString(1),cursor.getDouble(2));
+            accounts.add(account);
+        }
+        cursor.close();
+        db.close();
+        return accounts;
     }
 
     @Override
     public Account getAccount(String accountNo) throws InvalidAccountException {
+
+        db =dbHandler.getReadableDatabase();
+
         Account account = null;
 
-        Cursor cursor = db.query("account", new String[]{"bank_name, ac_holder, balance"},"account_no = ?" ,new String[] { accountNo} , null, null, null);
+        Cursor cursor = db.query(Constants.ACCOUNT_TABLE, new String[]{Constants.BANK_NAME, Constants.ACCOUNT_HOLDER, Constants.BALANCE},Constants.ACCOUNT_NO+" = ?" ,new String[] { accountNo} , null, null, null);
 
-        while(cursor.moveToNext()){
+        if(cursor.moveToNext()){
             account = new Account(accountNo,cursor.getString(0),cursor.getString(1),cursor.getDouble(2));
         }
+        cursor.close();
+        db.close();
         return account;
     }
 
     @Override
     public void addAccount(Account account) {
 
-        Cursor cursor = db.query("account", new String[]{"account_no"}, account.getAccountNo(), null , null, null, null);
+        db =dbHandler.getWritableDatabase();
+
+        Cursor cursor = db.query(Constants.ACCOUNT_TABLE, new String[]{Constants.ACCOUNT_NO}, Constants.ACCOUNT_NO+" = ?" ,new String[] { account.getAccountNo().toUpperCase()}, null , null, null, null);
 
         if (!cursor.moveToNext()) {
-            String sql = "INSERT INTO account (account_no, bank_name, ac_holder, balance) VALUES (?, ?, ?, ?)";
+            String sql = "INSERT INTO " +Constants.ACCOUNT_TABLE + " ( "+ Constants.ACCOUNT_NO +", "+ Constants.BANK_NAME + ", "+ Constants.ACCOUNT_HOLDER +", "+ Constants.BALANCE +") VALUES (?, ?, ?, ?)";
             SQLiteStatement statement = db.compileStatement(sql);
 
-            statement.bindString(1, account.getAccountNo());
+            statement.bindString(1, account.getAccountNo().toUpperCase());
             statement.bindString(2, account.getBankName());
             statement.bindString(3, account.getAccountHolderName());
             statement.bindDouble(4, account.getBalance());
 
             statement.executeInsert();
+            statement.close();
         }else{
            //implement error condition;
         }
+        cursor.close();
+        db.close();
     }
 
     @Override
     public void removeAccount(String accountNo) throws InvalidAccountException {
 
+        db =dbHandler.getWritableDatabase();
+
+        String sql = "DELETE FROM account WHERE account_no = ?";
+
+        SQLiteStatement statement = db.compileStatement(sql);
+
+        statement.bindString(1, accountNo);
+
+        statement.executeUpdateDelete();
+        statement.close();
+
+        db.close();
     }
 
     @Override
     public void updateBalance(String accountNo, ExpenseType expenseType, double amount) throws InvalidAccountException {
 
-        Cursor cursor = db.query("account", new String[]{"balance"}, " account_no = ? ", new String[]{accountNo}, null, null, null, null);
+        db =dbHandler.getWritableDatabase();
+
+        Cursor cursor = db.query(Constants.ACCOUNT_TABLE , new String[]{ Constants.BALANCE }, Constants.ACCOUNT_NO +" = ? ", new String[]{accountNo}, null, null, null, null);
 
         if (!cursor.moveToNext()) {
             String msg = "Account " + accountNo + " is invalid.";
@@ -111,7 +151,7 @@ public class PersistentAccountDAO implements AccountDAO {
 
             //starting to update the table
 
-            String sql = "UPDATE account SET balance=? WHERE account_no=?";
+            String sql = "UPDATE "+ Constants.ACCOUNT_TABLE +" SET "+ Constants.BALANCE +"=? WHERE "+Constants.ACCOUNT_NO+"=?";
             SQLiteStatement statement = db.compileStatement(sql);
 
 
@@ -119,6 +159,10 @@ public class PersistentAccountDAO implements AccountDAO {
             statement.bindString(2, accountNo);
 
             statement.executeUpdateDelete();
+            statement.close();
+
         }
+        cursor.close();
+        db.close();
     }
 }
